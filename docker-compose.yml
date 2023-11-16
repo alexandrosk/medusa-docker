@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  medusa:
+    build: .
+    ports:
+      - 9000:9000
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/medusa
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - db
+      - redis
+    networks:
+      - medusa-network
+
+  db:
+    image: postgres:13-alpine
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+    volumes:
+      - medusa-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - medusa-network
+
+  redis:
+    image: redis:7.2.3-alpine
+    ports:
+      - 6379:6379
+    restart: unless-stopped
+    volumes:
+      - medusa-redis:/data
+    networks:
+      - medusa-network
+
+networks:
+  medusa-network:
+    driver: bridge
+volumes:
+  medusa-db:
+    driver: local
+  medusa-redis:
+    driver: local
